@@ -1,0 +1,73 @@
+annotations_locations_details_name,annotations_outage_outage_type,outage_count,ISO3
+Afghanistan,NATIONWIDE,2,AFG
+Angola,NATIONWIDE,2,AGO
+Australia,NETWORK,1,AUS
+Cameroon,NATIONWIDE,1,CMR
+Canada,NETWORK,1,CAN
+Chile,NATIONWIDE,1,CHL
+China,NATIONWIDE,1,CHN
+Colombia,NETWORK,1,COL
+Cuba,NATIONWIDE,3,CUB
+Curaçao,NATIONWIDE,1,CUW
+Curaçao,NETWORK,1,CUW
+Czech Republic,NATIONWIDE,1,CZE
+Dominican Republic,NATIONWIDE,1,DOM
+Dominican Republic,NETWORK,1,DOM
+Egypt,NATIONWIDE,3,EGY
+Finland,NETWORK,1,FIN
+France,NETWORK,2,FRA
+Georgia,NETWORK,1,GEO
+Gibraltar,NATIONWIDE,1,GIB
+Greenland,NATIONWIDE,1,GRL
+Guyana,NATIONWIDE,1,GUY
+Haiti,NETWORK,6,HTI
+Honduras,NATIONWIDE,1,HND
+Hong Kong,NETWORK,1,HKG
+Indonesia,NETWORK,1,IDN
+Iran,NATIONWIDE,8,IRN
+Iraq,NATIONWIDE,35,IRQ
+Iraq,REGIONAL,16,IRQ
+Ireland,REGIONAL,1,IRL
+Italy,NETWORK,1,ITA
+Jamaica,NATIONWIDE,1,JAM
+Kenya,NATIONWIDE,1,KEN
+"Korea, North",NATIONWIDE,1,PRK
+Libya,NETWORK,6,LBY
+Malawi,NETWORK,1,MWI
+Maldives,REGIONAL,2,MDV
+Mayotte,NATIONWIDE,1,MYT
+Morocco,NETWORK,1,MAR
+Myanmar,NATIONWIDE,1,MMR
+Nepal,NATIONWIDE,1,NPL
+Niger,NETWORK,1,NER
+Nigeria,NETWORK,1,NGA
+North Macedonia,NATIONWIDE,1,MKD
+Pakistan,NETWORK,4,PAK
+Pakistan,REGIONAL,2,PAK
+Pakistan,NATIONWIDE,1,PAK
+Panama,NATIONWIDE,1,PAN
+Philippines,NETWORK,1,PHL
+Portugal;Spain,NATIONWIDE,1,"['PRT', 'ESP']"
+Puerto Rico,NATIONWIDE,2,PRI
+Reunion,NATIONWIDE,1,REU
+Russian Federation,NATIONWIDE,1,RUS
+Russian Federation,NETWORK,1,RUS
+Russian Federation,REGIONAL,1,RUS
+Saint Kitts and Nevis,NATIONWIDE,1,KNA
+Saint Vincent and the Grenadines,NATIONWIDE,1,VCT
+South Africa,NETWORK,2,ZAF
+Spain,NETWORK,1,ESP
+Sri Lanka,NATIONWIDE,1,LKA
+Sudan,NATIONWIDE,4,SDN
+Sweden,REGIONAL,1,SWE
+Switzerland,NETWORK,1,CHE
+Syria,NATIONWIDE,15,SYR
+Tanzania,NATIONWIDE,2,TZA
+Tanzania,NETWORK,1,TZA
+Thailand,NETWORK,1,THA
+Ukraine,REGIONAL,2,UKR
+United Arab Emirates,NETWORK,1,ARE
+United Kingdom,NETWORK,1,GBR
+United States,NETWORK,1,USA
+Vanuatu,NATIONWIDE,1,VUT
+Yemen,NETWORK,1,YEM

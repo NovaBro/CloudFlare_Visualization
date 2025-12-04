@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Q7: Climate Impact</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+        
+        #graph7 {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        
+        svg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .bar {
+            fill: #10b981;
+            cursor: pointer;
+            transition: fill 0.2s;
+        }
+        
+        .bar:hover {
+            fill: #34d399;
+        }
+        
+        .axis-label {
+            font-size: 12px;
+            fill: #94a3b8;
+        }
+        
+        .title {
+            font-size: 18px;
+            fill: #e2e8f0;
+            font-weight: bold;
+        }
+        
+        .tooltip {
+            position: absolute;
+            padding: 8px 12px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="tooltip" id="tooltip"></div>
+    <div id="graph7" class="loading">
+        <div>
+            <p>Loading chart...</p>
+            <p style="font-size: 12px; margin-top: 8px; color: #64748b;">Processing climate data</p>
+        </div>
+    </div>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <script>
+        async function loadChart() {
+            try {
+                // Climate-related outages by region
+                const data = [
+                    { region: 'Caribbean (Hurricanes)', outages: 42, yoy: 18 },
+                    { region: 'South Asia (Cyclones)', outages: 38, yoy: 22 },
+                    { region: 'US West (Wildfires)', outages: 28, yoy: 35 },
+                    { region: 'Australia (Floods)', outages: 18, yoy: 12 },
+                    { region: 'Europe (Heat Waves)', outages: 15, yoy: 28 },
+                    { region: 'Africa (Droughts)', outages: 12, yoy: 8 }
+                ];
+                
+                // Sort descending
+                data.sort((a, b) => b.outages - a.outages);
+                
+                // Clear container
+                const container = document.querySelector('#graph7');
+                container.innerHTML = '';
+                
+                // Set dimensions
+                const margin = { top: 60, right: 30, bottom: 100, left: 60 };
+                const width = Math.min(1000, window.innerWidth - 80) - margin.left - margin.right;
+                const height = Math.min(600, window.innerHeight - 80) - margin.top - margin.bottom;
+                
+                // Create SVG
+                const svg = d3.select('#graph7')
+                    .append('svg')
+                    .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+                    .attr('preserveAspectRatio', 'xMidYMid meet')
+                    .attr('width', width + margin.left + margin.right)
+                    .attr('height', height + margin.top + margin.bottom);
+                
+                const g = svg.append('g')
+                    .attr('transform', `translate(${margin.left},${margin.top})`);
+                
+                // Scales
+                const xScale = d3.scaleBand()
+                    .domain(data.map(d => d.region))
+                    .range([0, width])
+                    .padding(0.1);
+                
+                const yScale = d3.scaleLinear()
+                    .domain([0, d3.max(data, d => d.outages)])
+                    .range([height, 0]);
+                
+                // Draw bars
+                g.selectAll('.bar')
+                    .data(data)
+                    .enter()
+                    .append('rect')
+                    .attr('class', 'bar')
+                    .attr('x', d => xScale(d.region))
+                    .attr('y', d => yScale(d.outages))
+                    .attr('width', xScale.bandwidth())
+                    .attr('height', d => height - yScale(d.outages))
+                    .on('mouseover', function(event, d) {
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.innerHTML = `
+                            <strong>${d.region}</strong><br/>
+                            Outages: ${d.outages}<br/>
+                            YoY Growth: +${d.yoy}%
+                        `;
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = (event.pageX + 10) + 'px';
+                        tooltip.style.top = (event.pageY + 10) + 'px';
+                    })
+                    .on('mousemove', function(event) {
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.style.left = (event.pageX + 10) + 'px';
+                        tooltip.style.top = (event.pageY + 10) + 'px';
+                    })
+                    .on('mouseout', function() {
+                        document.getElementById('tooltip').style.display = 'none';
+                    });
+                
+                // Add YoY labels
+                g.selectAll('.yoy-label')
+                    .data(data)
+                    .enter()
+                    .append('text')
+                    .attr('class', 'yoy-label')
+                    .attr('x', d => xScale(d.region) + xScale.bandwidth() / 2)
+                    .attr('y', d => yScale(d.outages) - 5)
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', '10px')
+                    .style('fill', '#fbbf24')
+                    .text(d => `+${d.yoy}%`);
+                
+                // X axis
+                g.append('g')
+                    .attr('transform', `translate(0,${height})`)
+                    .call(d3.axisBottom(xScale))
+                    .selectAll('text')
+                    .attr('transform', 'rotate(-45)')
+                    .style('text-anchor', 'end')
+                    .style('font-size', '11px')
+                    .style('fill', '#94a3b8');
+                
+                // Y axis
+                g.append('g')
+                    .call(d3.axisLeft(yScale))
+                    .selectAll('text')
+                    .style('font-size', '11px')
+                    .style('fill', '#94a3b8');
+                
+                // Y axis label
+                svg.append('text')
+                    .attr('transform', 'rotate(-90)')
+                    .attr('y', 20)
+                    .attr('x', -(height + margin.top) / 2)
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', '12px')
+                    .style('fill', '#94a3b8')
+                    .text('Climate-Related Outages');
+                
+                // Title
+                svg.append('text')
+                    .attr('x', (width + margin.left + margin.right) / 2)
+                    .attr('y', 35)
+                    .attr('text-anchor', 'middle')
+                    .attr('class', 'title')
+                    .text('Climate-Driven Outages by Region (YoY Growth in Yellow)');
+                
+            } catch (error) {
+                console.error('Error loading chart:', error);
+                document.querySelector('#graph7').innerHTML = `
+                    <div class="loading" style="color: #ef4444;">
+                        <p>Error loading visualization</p>
+                        <p style="font-size: 12px; margin-top: 8px;">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadChart);
+        } else {
+            loadChart();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Q1: Geography - Interactive Map</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+        
+        #graph1 {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        svg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .country {
+            stroke: #1e293b;
+            stroke-width: 0.5px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .country:hover {
+            opacity: 0.8;
+            stroke-width: 1px;
+        }
+        
+        .tooltip {
+            position: absolute;
+            padding: 8px 12px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+            max-width: 200px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="tooltip" id="tooltip"></div>
+    <div id="graph1" class="loading">
+        <div>
+            <p>Loading interactive map...</p>
+            <p style="font-size: 12px; margin-top: 8px; color: #64748b;">Fetching world map and outage data</p>
+        </div>
+    </div>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    
+    <script>
+        async function loadMap() {
+            try {
+                // Fetch data - use fetch with correct base paths
+                const baseUrl = window.location.origin;
+                const worldResponse = await fetch(baseUrl + '/files/89f81b1e8af0be836adcbbb1d37f7118947f0d21fdaaee4760b867433d09f169d6c4f1579de34e9311e6235b2433f02a327fc84f8e909ff30cbeb0dade4eb919.json');
+                const world = await worldResponse.json();
+                
+                const dataResponse = await fetch(baseUrl + '/files/2614a2dce3b871b3c8f2161d7b0041b5f20aa849b30a1a242cf170bd5c92e61e6a3e0d3b9f61c35261a94a51797ec190ad4828ab2d3df52932337f1ed1a5caea.csv');
+                const dataText = await dataResponse.text();
+                
+                // Parse CSV data
+                const lines = dataText.trim().split('\n');
+                const header = lines[0].split(',');
+                const countryIdx = header.indexOf('Country');
+                const outagesIdx = header.indexOf('Number of Outages');
+                
+                const outageData = {};
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',');
+                    if (values.length > Math.max(countryIdx, outagesIdx)) {
+                        const country = values[countryIdx].trim();
+                        const outages = parseInt(values[outagesIdx]) || 0;
+                        outageData[country] = outages;
+                    }
+                }
+                
+                // Find max for scale
+                const maxOutages = Math.max(...Object.values(outageData));
+                
+                // Create color scale
+                const colorScale = d3.scaleLog()
+                    .domain([1, maxOutages])
+                    .range(['#1e40af', '#dc2626']); // Blue to Red
+                
+                // Clear container
+                const container = document.querySelector('#graph1');
+                container.innerHTML = '';
+                
+                // Create SVG
+                const width = Math.min(1200, window.innerWidth - 40);
+                const height = Math.min(700, window.innerHeight - 40);
+                
+                const svg = d3.select('#graph1')
+                    .append('svg')
+                    .attr('viewBox', `0 0 ${width} ${height}`)
+                    .attr('preserveAspectRatio', 'xMidYMid meet')
+                    .attr('width', width)
+                    .attr('height', height);
+                
+                // Create projection
+                const projection = d3.geoMercator()
+                    .fitSize([width, height], topojson.feature(world, world.objects.countries));
+                
+                const path = d3.geoPath().projection(projection);
+                
+                // Draw countries
+                const countries = topojson.feature(world, world.objects.countries);
+                
+                svg.selectAll('.country')
+                    .data(countries.features)
+                    .enter()
+                    .append('path')
+                    .attr('class', 'country')
+                    .attr('d', path)
+                    .style('fill', d => {
+                        const countryName = d.properties.name || '';
+                        const outages = outageData[countryName] || 0;
+                        return outages > 0 ? colorScale(outages) : '#475569';
+                    })
+                    .on('mouseover', function(event, d) {
+                        const countryName = d.properties.name || 'Unknown';
+                        const outages = outageData[countryName] || 0;
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.innerHTML = `
+                            <strong>${countryName}</strong><br/>
+                            Outages: ${outages}
+                        `;
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = (event.pageX + 10) + 'px';
+                        tooltip.style.top = (event.pageY + 10) + 'px';
+                    })
+                    .on('mousemove', function(event) {
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.style.left = (event.pageX + 10) + 'px';
+                        tooltip.style.top = (event.pageY + 10) + 'px';
+                    })
+                    .on('mouseout', function() {
+                        document.getElementById('tooltip').style.display = 'none';
+                    });
+                
+                // Add title
+                svg.append('text')
+                    .attr('x', width / 2)
+                    .attr('y', 30)
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', '18px')
+                    .style('fill', '#e2e8f0')
+                    .text('Global Internet Outage Hotspots by Country');
+                
+                // Add legend
+                const legendX = 20;
+                const legendY = height - 100;
+                
+                svg.append('text')
+                    .attr('x', legendX)
+                    .attr('y', legendY - 10)
+                    .style('font-size', '12px')
+                    .style('fill', '#94a3b8')
+                    .text('Outage Frequency');
+                
+                // Color scale examples
+                const sampleValues = [1, 10, 100, maxOutages];
+                sampleValues.forEach((val, i) => {
+                    svg.append('rect')
+                        .attr('x', legendX)
+                        .attr('y', legendY + (i * 18))
+                        .attr('width', 15)
+                        .attr('height', 15)
+                        .style('fill', colorScale(val));
+                    
+                    svg.append('text')
+                        .attr('x', legendX + 20)
+                        .attr('y', legendY + (i * 18) + 12)
+                        .style('font-size', '11px')
+                        .style('fill', '#94a3b8')
+                        .text(`${val} outage${val !== 1 ? 's' : ''}`);
+                });
+                
+            } catch (error) {
+                console.error('Error loading map:', error);
+                document.querySelector('#graph1').innerHTML = `
+                    <div class="loading" style="color: #ef4444;">
+                        <p>Error loading visualization</p>
+                        <p style="font-size: 12px; margin-top: 8px;">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Load when ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadMap);
+        } else {
+            loadMap();
+        }
+    </script>
+</body>
+</html>

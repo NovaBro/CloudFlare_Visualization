@@ -1,22 +1,27 @@
 {
-  "type": "module",
+  "name": "cloudpulse",
   "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "clean": "rimraf src/.observablehq/cache",
-    "build": "observable build",
-    "dev": "observable preview",
-    "deploy": "observable deploy",
-    "observable": "observable"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@observablehq/framework": "^1.13.3",
-    "d3-dsv": "^3.0.1",
-    "d3-time-format": "^4.1.0"
+    "@observablehq/inspector": "5",
+    "@observablehq/runtime": "5",
+    "@types/d3": "^7.4.3",
+    "d3": "^7.9.0",
+    "lucide-react": "^0.555.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "recharts": "^3.5.1"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5"
-  },
-  "engines": {
-    "node": ">=18"
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
   }
 }

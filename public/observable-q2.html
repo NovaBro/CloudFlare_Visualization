@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Q2: Top Countries by Outage Count</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+        
+        #graph2 {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        
+        svg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .bar {
+            fill: #3b82f6;
+            cursor: pointer;
+            transition: fill 0.2s;
+        }
+        
+        .bar:hover {
+            fill: #60a5fa;
+        }
+        
+        .bar-label {
+            font-size: 12px;
+            fill: #cbd5e1;
+            text-anchor: end;
+            dominant-baseline: middle;
+        }
+        
+        .axis-label {
+            font-size: 12px;
+            fill: #94a3b8;
+        }
+        
+        .title {
+            font-size: 18px;
+            fill: #e2e8f0;
+            font-weight: bold;
+        }
+        
+        .tooltip {
+            position: absolute;
+            padding: 8px 12px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="tooltip" id="tooltip"></div>
+    <div id="graph2" class="loading">
+        <div>
+            <p>Loading chart...</p>
+            <p style="font-size: 12px; margin-top: 8px; color: #64748b;">Processing outage data by country</p>
+        </div>
+    </div>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <script>
+        async function loadChart() {
+            try {
+                // Fetch data
+                const baseUrl = window.location.origin;
+                const dataResponse = await fetch(baseUrl + '/files/2614a2dce3b871b3c8f2161d7b0041b5f20aa849b30a1a242cf170bd5c92e61e6a3e0d3b9f61c35261a94a51797ec190ad4828ab2d3df52932337f1ed1a5caea.csv');
+                const dataText = await dataResponse.text();
+                
+                // Parse CSV
+                const lines = dataText.trim().split('\n');
+                const header = lines[0].split(',');
+                const countryIdx = header.indexOf('Country');
+                const outagesIdx = header.indexOf('Number of Outages');
+                
+                let data = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',');
+                    if (values.length > Math.max(countryIdx, outagesIdx)) {
+                        const country = values[countryIdx].trim();
+                        const outages = parseInt(values[outagesIdx]) || 0;
+                        if (outages > 0) {
+                            data.push({ country, outages });
+                        }
+                    }
+                }
+                
+                // Sort and get top 15
+                data.sort((a, b) => b.outages - a.outages);
+                data = data.slice(0, 15);
+                
+                // Clear container
+                const container = document.querySelector('#graph2');
+                container.innerHTML = '';
+                
+                // Set dimensions
+                const margin = { top: 50, right: 30, bottom: 80, left: 60 };
+                const width = Math.min(1000, window.innerWidth - 80) - margin.left - margin.right;
+                const height = Math.min(600, window.innerHeight - 80) - margin.top - margin.bottom;
+                
+                // Create SVG
+                const svg = d3.select('#graph2')
+                    .append('svg')
+                    .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+                    .attr('preserveAspectRatio', 'xMidYMid meet')
+                    .attr('width', width + margin.left + margin.right)
+                    .attr('height', height + margin.top + margin.bottom);
+                
+                const g = svg.append('g')
+                    .attr('transform', `translate(${margin.left},${margin.top})`);
+                
+                // Scales
+                const xScale = d3.scaleBand()
+                    .domain(data.map(d => d.country))
+                    .range([0, width])
+                    .padding(0.1);
+                
+                const yScale = d3.scaleLinear()
+                    .domain([0, d3.max(data, d => d.outages)])
+                    .range([height, 0]);
+                
+                // Draw bars
+                g.selectAll('.bar')
+                    .data(data)
+                    .enter()
+                    .append('rect')
+                    .attr('class', 'bar')
+                    .attr('x', d => xScale(d.country))
+                    .attr('y', d => yScale(d.outages))
+                    .attr('width', xScale.bandwidth())
+                    .attr('height', d => height - yScale(d.outages))
+                    .on('mouseover', function(event, d) {
+                        d3.select(this).style('opacity', 0.8);
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.innerHTML = `<strong>${d.country}</strong><br/>Outages: ${d.outages}`;
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = (event.pageX + 10) + 'px';
+                        tooltip.style.top = (event.pageY + 10) + 'px';
+                    })
+                    .on('mousemove', function(event) {
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.style.left = (event.pageX + 10) + 'px';
+                        tooltip.style.top = (event.pageY + 10) + 'px';
+                    })
+                    .on('mouseout', function() {
+                        d3.select(this).style('opacity', 1);
+                        document.getElementById('tooltip').style.display = 'none';
+                    });
+                
+                // X axis
+                g.append('g')
+                    .attr('transform', `translate(0,${height})`)
+                    .call(d3.axisBottom(xScale))
+                    .selectAll('text')
+                    .attr('transform', 'rotate(-45)')
+                    .style('text-anchor', 'end')
+                    .style('font-size', '11px')
+                    .style('fill', '#94a3b8');
+                
+                // Y axis
+                g.append('g')
+                    .call(d3.axisLeft(yScale))
+                    .selectAll('text')
+                    .style('font-size', '11px')
+                    .style('fill', '#94a3b8');
+                
+                // Y axis label
+                svg.append('text')
+                    .attr('transform', 'rotate(-90)')
+                    .attr('y', 20)
+                    .attr('x', -(height + margin.top) / 2)
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', '12px')
+                    .style('fill', '#94a3b8')
+                    .text('Number of Outages');
+                
+                // Title
+                svg.append('text')
+                    .attr('x', (width + margin.left + margin.right) / 2)
+                    .attr('y', 30)
+                    .attr('text-anchor', 'middle')
+                    .attr('class', 'title')
+                    .text('Top Countries by Number of Outages');
+                
+            } catch (error) {
+                console.error('Error loading chart:', error);
+                document.querySelector('#graph2').innerHTML = `
+                    <div class="loading" style="color: #ef4444;">
+                        <p>Error loading visualization</p>
+                        <p style="font-size: 12px; margin-top: 8px;">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadChart);
+        } else {
+            loadChart();
+        }
+    </script>
+</body>
+</html>

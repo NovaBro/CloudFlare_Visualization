@@ -1,0 +1,65 @@
+annotations_locations_details_name,annotations_locations_details_code,outage_count,ISO3,log_count
+Iraq,IQ,51,IRQ,3.93
+Syria,SY,15,SYR,2.71
+Iran,IR,8,IRN,2.08
+Pakistan,PK,7,PAK,1.95
+Haiti,HT,7,HTI,1.95
+Libya,LY,6,LBY,1.79
+Sudan,SD,4,SDN,1.39
+Russian Federation,RU,3,RUS,1.1
+Tanzania,TZ,3,TZA,1.1
+Cuba,CU,3,CUB,1.1
+Egypt,EG,3,EGY,1.1
+France,FR,2,FRA,0.69
+South Africa,ZA,2,ZAF,0.69
+Puerto Rico,PR,2,PRI,0.69
+Afghanistan,AF,2,AFG,0.69
+Curaçao,CW,2,CUW,0.69
+Angola,AO,2,AGO,0.69
+Maldives,MV,2,MDV,0.69
+Dominican Republic,DO,2,DOM,0.69
+Philippines,PH,1,PHL,0.0
+Reunion,RE,1,REU,0.0
+Panama,PA,1,PAN,0.0
+North Macedonia,MK,1,MKD,0.0
+Spain,ES,1,ESP,0.0
+Saint Kitts and Nevis,KN,1,KNA,0.0
+Saint Vincent and the Grenadines,VC,1,VCT,0.0
+Niger,NE,1,NER,0.0
+Sri Lanka,LK,1,LKA,0.0
+Sweden,SE,1,SWE,0.0
+Switzerland,CH,1,CHE,0.0
+Thailand,TH,1,THA,0.0
+Ukraine,UA,1,UKR,0.0
+United Arab Emirates,AE,1,ARE,0.0
+United Kingdom,GB,1,GBR,0.0
+United States,US,1,USA,0.0
+Vanuatu,VU,1,VUT,0.0
+Nigeria,NG,1,NGA,0.0
+Malawi,MW,1,MWI,0.0
+Nepal,NP,1,NPL,0.0
+Myanmar,MM,1,MMR,0.0
+Australia,AU,1,AUS,0.0
+Bolivia,BO,1,BOL,0.0
+Cameroon,CM,1,CMR,0.0
+Canada,CA,1,CAN,0.0
+Chile,CL,1,CHL,0.0
+China,CN,1,CHN,0.0
+Colombia,CO,1,COL,0.0
+Czech Republic,CZ,1,CZE,0.0
+Finland,FI,1,FIN,0.0
+Georgia,GE,1,GEO,0.0
+Gibraltar,GI,1,GIB,0.0
+Greenland,GL,1,GRL,0.0
+Guyana,GY,1,GUY,0.0
+Honduras,HN,1,HND,0.0
+Hong Kong,HK,1,HKG,0.0
+Indonesia,ID,1,IDN,0.0
+Ireland,IE,1,IRL,0.0
+Italy,IT,1,ITA,0.0
+Jamaica,JM,1,JAM,0.0
+Kenya,KE,1,KEN,0.0
+"Korea, North",KP,1,PRK,0.0
+Mayotte,YT,1,MYT,0.0
+Morocco,MA,1,MAR,0.0
+Yemen,YE,1,YEM,0.0

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Q5: Outage Impact Over Time</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+        
+        #graph5 {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        
+        svg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .line {
+            fill: none;
+            stroke-width: 2px;
+        }
+        
+        .dot {
+            fill: #3b82f6;
+            cursor: pointer;
+        }
+        
+        .dot:hover {
+            r: 5px;
+        }
+        
+        .axis-label {
+            font-size: 12px;
+            fill: #94a3b8;
+        }
+        
+        .title {
+            font-size: 18px;
+            fill: #e2e8f0;
+            font-weight: bold;
+        }
+        
+        .tooltip {
+            position: absolute;
+            padding: 8px 12px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="tooltip" id="tooltip"></div>
+    <div id="graph5" class="loading">
+        <div>
+            <p>Loading chart...</p>
+            <p style="font-size: 12px; margin-top: 8px; color: #64748b;">Processing impact data</p>
+        </div>
+    </div>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <script>
+        async function loadChart() {
+            try {
+                // Sample monthly impact data
+                const data = [
+                    { month: 'Jan', incidents: 15, severity: 3.2 },
+                    { month: 'Feb', incidents: 12, severity: 2.8 },
+                    { month: 'Mar', incidents: 18, severity: 3.5 },
+                    { month: 'Apr', incidents: 22, severity: 3.8 },
+                    { month: 'May', incidents: 19, severity: 3.4 },
+                    { month: 'Jun', incidents: 25, severity: 4.1 },
+                    { month: 'Jul', incidents: 28, severity: 4.3 },
+                    { month: 'Aug', incidents: 26, severity: 4.0 },
+                    { month: 'Sep', incidents: 20, severity: 3.6 },
+                    { month: 'Oct', incidents: 17, severity: 3.2 },
+                    { month: 'Nov', incidents: 16, severity: 3.0 },
+                    { month: 'Dec', incidents: 14, severity: 2.9 }
+                ];
+                
+                // Clear container
+                const container = document.querySelector('#graph5');
+                container.innerHTML = '';
+                
+                // Set dimensions
+                const margin = { top: 60, right: 30, bottom: 60, left: 70 };
+                const width = Math.min(1000, window.innerWidth - 80) - margin.left - margin.right;
+                const height = Math.min(600, window.innerHeight - 80) - margin.top - margin.bottom;
+                
+                // Create SVG
+                const svg = d3.select('#graph5')
+                    .append('svg')
+                    .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+                    .attr('preserveAspectRatio', 'xMidYMid meet')
+                    .attr('width', width + margin.left + margin.right)
+                    .attr('height', height + margin.top + margin.bottom);
+                
+                const g = svg.append('g')
+                    .attr('transform', `translate(${margin.left},${margin.top})`);
+                
+                // Scales
+                const xScale = d3.scaleBand()
+                    .domain(data.map(d => d.month))
+                    .range([0, width])
+                    .padding(0.1);
+                
+                const yScaleLeft = d3.scaleLinear()
+                    .domain([0, d3.max(data, d => d.incidents)])
+                    .range([height, 0]);
+                
+                const yScaleRight = d3.scaleLinear()
+                    .domain([0, d3.max(data, d => d.severity)])
+                    .range([height, 0]);
+                
+                // Line generators
+                const line1 = d3.line()
+                    .x((d, i) => xScale(d.month) + xScale.bandwidth() / 2)
+                    .y(d => yScaleLeft(d.incidents));
+                
+                const line2 = d3.line()
+                    .x((d, i) => xScale(d.month) + xScale.bandwidth() / 2)
+                    .y(d => yScaleRight(d.severity));
+                
+                // Draw lines
+                g.append('path')
+                    .datum(data)
+                    .attr('class', 'line')
+                    .attr('d', line1)
+                    .style('stroke', '#3b82f6')
+                    .style('opacity', 0.8);
+                
+                g.append('path')
+                    .datum(data)
+                    .attr('class', 'line')
+                    .attr('d', line2)
+                    .style('stroke', '#ef4444')
+                    .style('opacity', 0.8);
+                
+                // Draw dots for incidents
+                g.selectAll('.dot-incident')
+                    .data(data)
+                    .enter()
+                    .append('circle')
+                    .attr('class', 'dot dot-incident')
+                    .attr('cx', d => xScale(d.month) + xScale.bandwidth() / 2)
+                    .attr('cy', d => yScaleLeft(d.incidents))
+                    .attr('r', 3)
+                    .style('fill', '#3b82f6')
+                    .on('mouseover', function(event, d) {
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.innerHTML = `<strong>${d.month}</strong><br/>Incidents: ${d.incidents}`;
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = (event.pageX + 10) + 'px';
+                        tooltip.style.top = (event.pageY + 10) + 'px';
+                    })
+                    .on('mousemove', function(event) {
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.style.left = (event.pageX + 10) + 'px';
+                        tooltip.style.top = (event.pageY + 10) + 'px';
+                    })
+                    .on('mouseout', function() {
+                        document.getElementById('tooltip').style.display = 'none';
+                    });
+                
+                // X axis
+                g.append('g')
+                    .attr('transform', `translate(0,${height})`)
+                    .call(d3.axisBottom(xScale))
+                    .selectAll('text')
+                    .style('font-size', '11px')
+                    .style('fill', '#94a3b8');
+                
+                // Left Y axis
+                g.append('g')
+                    .call(d3.axisLeft(yScaleLeft))
+                    .selectAll('text')
+                    .style('font-size', '11px')
+                    .style('fill', '#94a3b8');
+                
+                // Left Y axis label
+                svg.append('text')
+                    .attr('transform', 'rotate(-90)')
+                    .attr('y', 20)
+                    .attr('x', -(height + margin.top) / 2)
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', '12px')
+                    .style('fill', '#3b82f6')
+                    .text('Number of Incidents');
+                
+                // Title
+                svg.append('text')
+                    .attr('x', (width + margin.left + margin.right) / 2)
+                    .attr('y', 35)
+                    .attr('text-anchor', 'middle')
+                    .attr('class', 'title')
+                    .text('Outage Impact Trends by Month');
+                
+                // Legend
+                svg.append('rect')
+                    .attr('x', width + margin.left - 140)
+                    .attr('y', margin.top)
+                    .attr('width', 8)
+                    .attr('height', 8)
+                    .style('fill', '#3b82f6');
+                
+                svg.append('text')
+                    .attr('x', width + margin.left - 125)
+                    .attr('y', margin.top + 8)
+                    .attr('class', 'axis-label')
+                    .text('Incidents');
+                
+                svg.append('rect')
+                    .attr('x', width + margin.left - 140)
+                    .attr('y', margin.top + 20)
+                    .attr('width', 8)
+                    .attr('height', 8)
+                    .style('fill', '#ef4444');
+                
+                svg.append('text')
+                    .attr('x', width + margin.left - 125)
+                    .attr('y', margin.top + 28)
+                    .attr('class', 'axis-label')
+                    .text('Severity');
+                
+            } catch (error) {
+                console.error('Error loading chart:', error);
+                document.querySelector('#graph5').innerHTML = `
+                    <div class="loading" style="color: #ef4444;">
+                        <p>Error loading visualization</p>
+                        <p style="font-size: 12px; margin-top: 8px;">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadChart);
+        } else {
+            loadChart();
+        }
+    </script>
+</body>
+</html>

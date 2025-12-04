@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Q4: Outage Duration vs Scope</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+        
+        #graph4 {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        
+        svg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .bubble {
+            stroke: #1e293b;
+            stroke-width: 1px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .bubble:hover {
+            opacity: 0.8;
+            stroke-width: 2px;
+        }
+        
+        .axis-label {
+            font-size: 12px;
+            fill: #94a3b8;
+        }
+        
+        .title {
+            font-size: 18px;
+            fill: #e2e8f0;
+            font-weight: bold;
+        }
+        
+        .tooltip {
+            position: absolute;
+            padding: 8px 12px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="tooltip" id="tooltip"></div>
+    <div id="graph4" class="loading">
+        <div>
+            <p>Loading scatter plot...</p>
+            <p style="font-size: 12px; margin-top: 8px; color: #64748b;">Processing outage metrics</p>
+        </div>
+    </div>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <script>
+        async function loadChart() {
+            try {
+                // Sample data for duration vs scope
+                const data = [
+                    // Political outages: short, nationwide
+                    { category: 'Political', duration: 2, scope: 95, count: 15, color: '#dc2626' },
+                    { category: 'Political', duration: 4, scope: 100, count: 8, color: '#dc2626' },
+                    { category: 'Political', duration: 1, scope: 90, count: 12, color: '#dc2626' },
+                    
+                    // Infrastructure: longer, regional
+                    { category: 'Infrastructure', duration: 8, scope: 50, count: 6, color: '#f59e0b' },
+                    { category: 'Infrastructure', duration: 12, scope: 40, count: 4, color: '#f59e0b' },
+                    { category: 'Infrastructure', duration: 6, scope: 60, count: 5, color: '#f59e0b' },
+                    
+                    // Weather: variable
+                    { category: 'Weather', duration: 18, scope: 35, count: 3, color: '#10b981' },
+                    { category: 'Weather', duration: 24, scope: 25, count: 2, color: '#10b981' },
+                    
+                    // Power: moderate
+                    { category: 'Power', duration: 10, scope: 45, count: 4, color: '#f97316' },
+                ];
+                
+                // Clear container
+                const container = document.querySelector('#graph4');
+                container.innerHTML = '';
+                
+                // Set dimensions
+                const margin = { top: 60, right: 30, bottom: 60, left: 70 };
+                const width = Math.min(1000, window.innerWidth - 80) - margin.left - margin.right;
+                const height = Math.min(600, window.innerHeight - 80) - margin.top - margin.bottom;
+                
+                // Create SVG
+                const svg = d3.select('#graph4')
+                    .append('svg')
+                    .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+                    .attr('preserveAspectRatio', 'xMidYMid meet')
+                    .attr('width', width + margin.left + margin.right)
+                    .attr('height', height + margin.top + margin.bottom);
+                
+                const g = svg.append('g')
+                    .attr('transform', `translate(${margin.left},${margin.top})`);
+                
+                // Scales
+                const xScale = d3.scaleLinear()
+                    .domain([0, d3.max(data, d => d.duration) + 2])
+                    .range([0, width]);
+                
+                const yScale = d3.scaleLinear()
+                    .domain([0, 105])
+                    .range([height, 0]);
+                
+                const radiusScale = d3.scaleSqrt()
+                    .domain([0, d3.max(data, d => d.count)])
+                    .range([0, 40]);
+                
+                // Draw bubbles
+                g.selectAll('.bubble')
+                    .data(data)
+                    .enter()
+                    .append('circle')
+                    .attr('class', 'bubble')
+                    .attr('cx', d => xScale(d.duration))
+                    .attr('cy', d => yScale(d.scope))
+                    .attr('r', d => radiusScale(d.count))
+                    .style('fill', d => d.color)
+                    .style('opacity', 0.7)
+                    .on('mouseover', function(event, d) {
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.innerHTML = `
+                            <strong>${d.category}</strong><br/>
+                            Duration: ${d.duration}h<br/>
+                            Scope: ${d.scope}%<br/>
+                            Count: ${d.count}
+                        `;
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = (event.pageX + 10) + 'px';
+                        tooltip.style.top = (event.pageY + 10) + 'px';
+                    })
+                    .on('mousemove', function(event) {
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.style.left = (event.pageX + 10) + 'px';
+                        tooltip.style.top = (event.pageY + 10) + 'px';
+                    })
+                    .on('mouseout', function() {
+                        document.getElementById('tooltip').style.display = 'none';
+                    });
+                
+                // X axis
+                g.append('g')
+                    .attr('transform', `translate(0,${height})`)
+                    .call(d3.axisBottom(xScale))
+                    .selectAll('text')
+                    .style('font-size', '11px')
+                    .style('fill', '#94a3b8');
+                
+                // Y axis
+                g.append('g')
+                    .call(d3.axisLeft(yScale))
+                    .selectAll('text')
+                    .style('font-size', '11px')
+                    .style('fill', '#94a3b8');
+                
+                // X axis label
+                svg.append('text')
+                    .attr('x', (width + margin.left + margin.right) / 2)
+                    .attr('y', height + margin.top + 50)
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', '12px')
+                    .style('fill', '#94a3b8')
+                    .text('Duration (hours)');
+                
+                // Y axis label
+                svg.append('text')
+                    .attr('transform', 'rotate(-90)')
+                    .attr('y', 20)
+                    .attr('x', -(height + margin.top) / 2)
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', '12px')
+                    .style('fill', '#94a3b8')
+                    .text('Scope (% of Infrastructure)');
+                
+                // Title
+                svg.append('text')
+                    .attr('x', (width + margin.left + margin.right) / 2)
+                    .attr('y', 35)
+                    .attr('text-anchor', 'middle')
+                    .attr('class', 'title')
+                    .text('Outage Duration vs Infrastructure Scope');
+                
+                // Legend
+                const colors = [
+                    { label: 'Political', color: '#dc2626' },
+                    { label: 'Infrastructure', color: '#f59e0b' },
+                    { label: 'Weather', color: '#10b981' },
+                    { label: 'Power', color: '#f97316' }
+                ];
+                
+                const legendX = width + margin.left + 10;
+                colors.forEach((item, i) => {
+                    svg.append('rect')
+                        .attr('x', legendX)
+                        .attr('y', margin.top + (i * 20))
+                        .attr('width', 12)
+                        .attr('height', 12)
+                        .style('fill', item.color);
+                    
+                    svg.append('text')
+                        .attr('x', legendX + 20)
+                        .attr('y', margin.top + (i * 20) + 10)
+                        .attr('class', 'axis-label')
+                        .text(item.label);
+                });
+                
+            } catch (error) {
+                console.error('Error loading chart:', error);
+                document.querySelector('#graph4').innerHTML = `
+                    <div class="loading" style="color: #ef4444;">
+                        <p>Error loading visualization</p>
+                        <p style="font-size: 12px; margin-top: 8px;">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadChart);
+        } else {
+            loadChart();
+        }
+    </script>
+</body>
+</html>
