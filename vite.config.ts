@@ -6,7 +6,8 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       // GitHub Pages serves from /CloudFlare_Visualization/ subdirectory
-      base: '/CloudFlare_Visualization/',
+      // base: '/CloudFlare_Visualization/',
+      base: './',
       server: {
         port: 3000,
         host: '0.0.0.0',
