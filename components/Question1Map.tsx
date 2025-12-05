@@ -48,7 +48,7 @@ export const Question1Map: React.FC = () => {
 
     // Load and process data
     Promise.all([
-      d3.csv('/files/714d040560e4559f3dbde20930a46b415ed6703d48340fb165c92de38e27bf6356069f3296be9811c5cd65cc20ba39654688460d099f56c70b711079f860f537.csv'),
+      d3.csv('./files/714d040560e4559f3dbde20930a46b415ed6703d48340fb165c92de38e27bf6356069f3296be9811c5cd65cc20ba39654688460d099f56c70b711079f860f537.csv'),
       d3.json('/files/89f81b1e8af0be836adcbbb1d37f7118947f0d21fdaaee4760b867433d09f169d6c4f1579de34e9311e6235b2433f02a327fc84f8e909ff30cbeb0dade4eb919.json')
     ]).then(([csvData, worldData]: [any[], any]) => {
       

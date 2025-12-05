@@ -16,7 +16,7 @@ export const Question8TrendsOverTime: React.FC = () => {
     const margin = {top: 40, right: 60, bottom: 20, left: 45};  // 50% of original
 
     // Load data
-    d3.csv('/files/714d040560e4559f3dbde20930a46b415ed6703d48340fb165c92de38e27bf6356069f3296be9811c5cd65cc20ba39654688460d099f56c70b711079f860f537.csv')
+    d3.csv('./files/714d040560e4559f3dbde20930a46b415ed6703d48340fb165c92de38e27bf6356069f3296be9811c5cd65cc20ba39654688460d099f56c70b711079f860f537.csv')
       .then((csvData: any[]) => {
         
         // Process data by month
